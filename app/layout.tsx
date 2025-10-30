@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,9 +25,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Plausible */}
+        <script
+          defer
+          data-domain="zoolopodi.vercel.app"
+          src="https://plausible.io/js/script.js"
+        ></script>
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <header className="w-full border-b bg-white">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex justify-end gap-3">
+            <a href="/tr" className="text-sm text-gray-600 hover:underline">TR</a>
+            <a href="/en" className="text-sm text-gray-600 hover:underline">EN</a>
+          </div>
+        </header>
         {children}
       </body>
     </html>
