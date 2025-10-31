@@ -1,6 +1,12 @@
 {
-  "site.title": "Zoolopodi",
-  "search.placeholder": "Tür ara (ör. vaşak, Panthera...)",
-  "taxonomy.children": "Alt taksonlar",
+  "site": {
+    "title": "Zoolopodi"
+  },
+  "search": {
+    "placeholder": "Tür ara (ör. vaşak, Panthera...)"
+  },
+  "taxonomy": {
+    "children": "Alt taksonlar"
+  },
   "references": "Kaynakça"
 }

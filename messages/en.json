@@ -1,6 +1,12 @@
 {
-  "site.title": "Zoolopodi",
-  "search.placeholder": "Search species (e.g., lynx, Panthera...)",
-  "taxonomy.children": "Subtaxa",
+  "site": {
+    "title": "Zoolopodi"
+  },
+  "search": {
+    "placeholder": "Search species (e.g., lynx, Panthera...)"
+  },
+  "taxonomy": {
+    "children": "Subtaxa"
+  },
   "references": "References"
 }
