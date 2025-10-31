@@ -153,3 +153,35 @@ export async function enrichInatDistribution(taxonId: number, canonicalName: str
             { onConflict: "taxon_id,source" });
   if (error) throw error;
 }
+
+// ---- EOL (Encyclopedia of Life) ----
+function stripHtml(s?: string) {
+  return (s || "").replace(/<\/?[^>]+>/g, "").replace(/\s+/g, " ").trim();
+}
+
+// EOL: önce arama, sonra sayfa
+export async function fetchEolPageByName(scientificName: string) {
+  const q = encodeURIComponent(scientificName);
+  const search = await fetch(`https://eol.org/api/search/1.0.json?q=${q}`);
+  if (!search.ok) return null;
+  const sj = await search.json();
+  const id = sj?.results?.[0]?.id;
+  if (!id) return null;
+
+  const page = await fetch(
+    `https://eol.org/api/pages/1.0/${id}.json?images=0&videos=0&sounds=0&maps=0&texts=6&details=true`
+  );
+  if (!page.ok) return null;
+  const pj = await page.json();
+
+  // Metin parçaları (en anlamlı olanı seçelim)
+  const texts: any[] = pj?.dataObjects || [];
+  const best = texts.find((t) => t.subject === "http://purl.org/dc/dcmitype/Text") || texts[0];
+
+  return {
+    eol_id: Number(id),
+    title: best?.title || pj?.scientificName || scientificName,
+    content: stripHtml(best?.description || ""),
+    url: `https://eol.org/pages/${id}`
+  };
+}

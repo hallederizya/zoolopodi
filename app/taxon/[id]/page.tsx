@@ -34,6 +34,12 @@ export async function generateStaticParams() {
   return list;
 }
 
+async function getSimilar(id: number) {
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const r = await fetch(`${base}/api/taxon/${id}/similar`, { cache: "no-store" });
+  return r.json();
+}
+
 // DİKKAT: params artık Promise! -> await ile çöz
 export default async function TaxonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;            // <-- önemli satır
@@ -56,6 +62,7 @@ export default async function TaxonPage({ params }: { params: Promise<{ id: stri
   }
 
   const data: TaxonData = await res.json();
+  const similar = await getSimilar(Number(id));
 
   return (
     <main className="p-6">
@@ -110,6 +117,25 @@ export default async function TaxonPage({ params }: { params: Promise<{ id: stri
         <section className="mt-6">
           <h2 className="font-semibold mb-2">Dağılım (iNaturalist örneklem)</h2>
           <DistributionMap fc={data.distribution.geojson as any} />
+        </section>
+      )}
+
+      {!!similar?.length && (
+        <section className="mt-8">
+          <h2 className="font-semibold mb-2">Benzer türler</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {similar.map((s: any) => (
+              <a key={s.id} href={`/taxon/${s.id}`} className="border rounded overflow-hidden hover:shadow">
+                {s.thumb ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={s.thumb} alt={s.canonical_name} className="w-full h-28 object-cover" />
+                ) : (
+                  <div className="w-full h-28 bg-gray-100" />
+                )}
+                <div className="p-2 text-sm">{s.canonical_name}</div>
+              </a>
+            ))}
+          </div>
         </section>
       )}
 
