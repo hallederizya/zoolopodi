@@ -13,7 +13,7 @@ export default async function OG({ params }: { params: Promise<{ id: string }> }
 
   const [{ data: tx }, { data: pic }] = await Promise.all([
     sb.from("taxon").select("canonical_name, rank").eq("id", id).single(),
-    sb.from("media").select("url, title").eq("taxon_id", id).eq("kind","image").order("id",{ascending:true}).limit(1).maybeSingle()
+    sb.from("media").select("url, title").eq("taxon_id", id).eq("kind","image").eq("approved", true).order("id",{ascending:true}).limit(1).maybeSingle()
   ]);
 
   const title = tx?.canonical_name || "Zoolopodi";

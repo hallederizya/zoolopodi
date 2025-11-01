@@ -95,7 +95,8 @@ export async function addCommonsImage(taxonId: number, canonicalName: string) {
     title: candidate.title,
     author: candidate.author,
     license: candidate.license,
-    source: "Wikimedia Commons"
+    source: "Wikimedia Commons",
+    approved: false
   });
   if (error) throw error;
   return { added: true };

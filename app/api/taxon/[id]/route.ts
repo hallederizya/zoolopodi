@@ -17,7 +17,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       supabase.from("taxon").select("*").eq("id", id).single(),
       supabase.from("taxon_name").select("name, lang, is_scientific").eq("taxon_id", id).order("is_scientific", { ascending: false }),
       supabase.from("taxon_status").select("*").eq("taxon_id", id).limit(1),
-      supabase.from("media").select("*").eq("taxon_id", id).order("id", { ascending: true }).limit(12),
+      supabase.from("media").select("*").eq("taxon_id", id).eq("approved", true).order("id", { ascending: true }).limit(12),
       supabase.from("distribution").select("source, geojson").eq("taxon_id", id).limit(1),
       supabase.from("refs").select("citation, url, source").eq("taxon_id", id).order("id", { ascending: true }),
       supabase.from("taxon_descriptions").select("source, title, content, url").eq("taxon_id", id).order("id", { ascending: true }),

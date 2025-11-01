@@ -53,6 +53,20 @@ export default function AdminPage() {
         </section>
 
         <section className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">Medya Yönetimi</h2>
+          <ul className="space-y-2">
+            <li>
+              <a 
+                href={`/admin/media?token=${searchParams.get("token")}`} 
+                className="text-blue-600 hover:underline"
+              >
+                Medya Onay/Reddet
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <section className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">İstatistikler</h2>
           <p className="text-gray-600">Yakında...</p>
         </section>

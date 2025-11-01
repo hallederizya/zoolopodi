@@ -9,7 +9,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   // add thumbnails
   const ids = (data || []).map((x: any) => x.id);
   if (!ids.length) return NextResponse.json([]);
-  const { data: pics } = await sb.from("media").select("taxon_id, url, thumb_url").in("taxon_id", ids).eq("kind", "image");
+  const { data: pics } = await sb.from("media").select("taxon_id, url, thumb_url").in("taxon_id", ids).eq("kind", "image").eq("approved", true);
   const firstPic = new Map<number, string>();
   for (const p of pics || []) if (!firstPic.has(p.taxon_id)) firstPic.set(p.taxon_id, p.thumb_url || p.url);
   const enriched = (data || []).map((x: any) => ({ ...x, thumb: firstPic.get(x.id) || null }));

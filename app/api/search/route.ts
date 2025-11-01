@@ -14,7 +14,8 @@ export async function GET(req: Request) {
   if (error) return NextResponse.json([], { status: 500 });
 
   const ids = (data || []).map((x: any) => x.taxon_id);
-  const { data: pics } = await sb.from("media").select("taxon_id, url, thumb_url").in("taxon_id", ids).eq("kind", "image");
+    // 3) Her takson için thumbnail (media tablosundan)
+  const { data: pics } = await sb.from("media").select("taxon_id, url, thumb_url").in("taxon_id", ids).eq("kind", "image").eq("approved", true);
   const firstPic = new Map<number, string>();
   for (const p of pics || []) if (!firstPic.has(p.taxon_id)) firstPic.set(p.taxon_id, p.thumb_url || p.url);
 
