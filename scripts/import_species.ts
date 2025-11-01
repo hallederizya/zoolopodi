@@ -206,6 +206,23 @@ async function importOneScientificName(scientificName: string, opts: { skipMedia
   if (!opts.skipInat) {
     try { await enrichInatDistribution(taxonId, detail.canonicalName, 3, 1, 1500); } catch {}
   }
+  
+  // Revalidate cache for the taxon page
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const adminToken = process.env.ADMIN_TOKEN;
+    if (siteUrl && adminToken) {
+      await fetch(`${siteUrl}/api/revalidate`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({ path: `/taxon/${taxonId}` })
+      }).catch(() => {});
+    }
+  } catch {}
+  
   return taxonId;
 }
 
