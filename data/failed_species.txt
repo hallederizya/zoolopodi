@@ -1,0 +1,8 @@
+# GBIF'de bulunamayan türler (10 adet)
+# Import tarihi: 2025-11-01
+
+Porina africana
+Porina australiensis
+Dimetopia hirta
+Crepis longipes
+Bugula orientalis
