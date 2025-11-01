@@ -177,6 +177,53 @@ export async function addCommonsImageFlexible(taxonId: number, canonicalName: st
   return { added: true };
 }
 
+// ---- Wikidata P18 fallback ----
+export async function fetchWikidataP18(scientificName: string) {
+  const sparql = `
+    SELECT ?image WHERE {
+      ?item wdt:P225 "${scientificName}" .
+      ?item wdt:P18 ?image .
+    } LIMIT 1
+  `;
+  const url = "https://query.wikidata.org/sparql?format=json&query=" + encodeURIComponent(sparql);
+  const r = await fetch(url, { headers: { "User-Agent": "Zoolopodi/1.0" } });
+  if (!r.ok) return null;
+  const j = await r.json();
+  const val = j?.results?.bindings?.[0]?.image?.value;
+  if (!val) return null;
+
+  // P18 doğrudan bir resim URL'i (genelde upload.wikimedia.org) olur
+  return { url: val as string };
+}
+
+export async function addAnyImage(taxonId: number, canonicalName: string) {
+  // 1) Commons (esnek)
+  const c = await addCommonsImageFlexible(taxonId, canonicalName);
+  if (c.added) return c;
+  
+  // 2) Wikidata P18 fallback
+  const w = await fetchWikidataP18(canonicalName);
+  if (!w?.url) return { added: false, reason: "no_sources" };
+
+  const { data: exists } = await supabaseService.from("media")
+    .select("id").eq("taxon_id", taxonId).eq("url", w.url).limit(1);
+  if (exists && exists.length) return { added: false, reason: "exists" };
+
+  const { error } = await supabaseService.from("media").insert({
+    taxon_id: taxonId, 
+    kind: "image", 
+    url: w.url, 
+    thumb_url: null,
+    title: canonicalName,
+    author: "Wikidata",
+    license: "Various",
+    source: "Wikidata P18", 
+    approved: false
+  });
+  if (error) throw error;
+  return { added: true };
+}
+
 // ---- iNaturalist ----
 async function fetchInat(scientificName: string, page: number) {
   const u = new URL("https://api.inaturalist.org/v1/observations");

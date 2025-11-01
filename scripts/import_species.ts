@@ -2,7 +2,7 @@
 import { createClient } from "@supabase/supabase-js";
 import {
   fetchIucnByName, upsertIucnStatus,
-  addCommonsImage, addCommonsImageFlexible, enrichInatDistribution,
+  addCommonsImage, addCommonsImageFlexible, addAnyImage, enrichInatDistribution,
   fetchEolPageByName
 } from "@/lib/enrich";
 import fs from "node:fs";
@@ -201,7 +201,7 @@ async function importOneScientificName(scientificName: string, opts: { skipMedia
     try { const i = await fetchIucnByName(detail.canonicalName); if (i) await upsertIucnStatus(taxonId, i); } catch {}
   }
   if (!opts.skipMedia) {
-    try { await addCommonsImageFlexible(taxonId, detail.canonicalName); } catch {}
+    try { await addAnyImage(taxonId, detail.canonicalName); } catch (e: any) { console.warn("Media uyarı:", e.message); }
   }
   if (!opts.skipInat) {
     try { await enrichInatDistribution(taxonId, detail.canonicalName, 3, 1, 1500); } catch {}
