@@ -86,6 +86,26 @@ export default async function TaxonPage({ params }: { params: Promise<{ id: stri
         </div>
       </header>
 
+      <section className="mt-4">
+        <h2 className="font-semibold mb-2">Adlar</h2>
+        <div className="space-y-2">
+          {/* Bilimsel adlar üstte kalın */}
+          {data.names?.filter((n) => n.is_scientific).map((n, i) => (
+            <div key={`sci-${i}`} className="font-bold text-lg">
+              {n.name} <span className="text-sm text-gray-600 font-normal italic">(bilimsel)</span>
+            </div>
+          ))}
+          {/* Yerel/ortak adlar altında, daha küçük */}
+          <ul className="list-disc ml-6 space-y-1">
+            {data.names?.filter((n) => !n.is_scientific).map((n, i) => (
+              <li key={`vern-${i}`} className="text-gray-700">
+                {n.name} {n.lang && n.lang !== "und" ? `(${n.lang})` : ""}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       {!!data.media?.length && (
         <section className="mt-6">
           <h2 className="font-semibold mb-2">Görseller</h2>
