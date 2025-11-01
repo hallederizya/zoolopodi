@@ -13,13 +13,14 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     const id = Number(idParam);
     if (!Number.isFinite(id)) return NextResponse.json({ error: "bad id" }, { status: 400 });
 
-    const [{ data: tx }, { data: names }, { data: status }, { data: pics }, { data: dist }, { data: refs }] = await Promise.all([
+    const [{ data: tx }, { data: names }, { data: status }, { data: pics }, { data: dist }, { data: refs }, { data: descs }] = await Promise.all([
       supabase.from("taxon").select("*").eq("id", id).single(),
       supabase.from("taxon_name").select("name, lang, is_scientific").eq("taxon_id", id).order("is_scientific", { ascending: false }),
       supabase.from("taxon_status").select("*").eq("taxon_id", id).limit(1),
       supabase.from("media").select("*").eq("taxon_id", id).order("id", { ascending: true }).limit(12),
       supabase.from("distribution").select("source, geojson").eq("taxon_id", id).limit(1),
       supabase.from("refs").select("citation, url, source").eq("taxon_id", id).order("id", { ascending: true }),
+      supabase.from("taxon_descriptions").select("source, title, content, url").eq("taxon_id", id).order("id", { ascending: true }),
     ]);
 
     if (!tx) {
@@ -34,6 +35,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       media: pics || [],
       distribution: dist?.[0] || null,
       refs: refs || [],
+      descriptions: descs || [],
     });
     res.headers.set("Cache-Control", "s-maxage=86400, stale-while-revalidate=86400, max-age=0");
     return res;
