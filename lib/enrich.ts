@@ -78,8 +78,83 @@ export async function searchCommonsBestImage(query: string) {
   return null;
 }
 
+// ---- GÜNCEL: Commons araması birden fazla sorgu ile ----
+export async function searchCommonsBestImageMulti(queries: string[]) {
+  const preferred = ["CC0", "CC BY", "CC BY-SA", "Public domain"];
+  for (const q of queries) {
+    const u = new URL("https://commons.wikimedia.org/w/api.php");
+    u.searchParams.set("action", "query");
+    u.searchParams.set("format", "json");
+    u.searchParams.set("origin", "*");
+    u.searchParams.set("generator", "search");
+    u.searchParams.set("gsrsearch", `${q} filetype:bitmap`);
+    u.searchParams.set("gsrlimit", "12");
+    u.searchParams.set("prop", "imageinfo");
+    u.searchParams.set("iiprop", "url|user|extmetadata");
+    u.searchParams.set("iiurlwidth", "1200");
+    u.searchParams.set("iiurlheight", "1200");
+
+    const r = await fetch(u);
+    if (!r.ok) continue;
+    const j = await r.json();
+    const pages = j?.query?.pages ? Object.values(j.query.pages) as any[] : [];
+    for (const p of pages) {
+      const info = p?.imageinfo?.[0];
+      if (!info) continue;
+      const meta = info.extmetadata || {};
+      const licShort = meta.LicenseShortName?.value || "";
+      if (!preferred.some((x: string) => licShort.toLowerCase().includes(x.toLowerCase()))) continue;
+      const artist = (meta.Artist?.value || "").replace(/<\/?[^>]+>/g, "").trim();
+      const title = (meta.ObjectName?.value || p.title || "").replace(/^File:/i, "");
+      return {
+        fullUrl: info.url as string,
+        thumbUrl: info.thumburl as string | undefined,
+        license: licShort || "CC",
+        author: artist || info.user || "Unknown",
+        title
+      };
+    }
+  }
+  return null;
+}
+
 export async function addCommonsImage(taxonId: number, canonicalName: string) {
   const candidate = await searchCommonsBestImage(canonicalName);
+  if (!candidate) return { added: false, reason: "no_candidate" };
+
+  const { data: exists } = await supabaseService
+    .from("media").select("id")
+    .eq("taxon_id", taxonId).eq("url", candidate.fullUrl).limit(1);
+  if (exists && exists.length) return { added: false, reason: "exists" };
+
+  const { error } = await supabaseService.from("media").insert({
+    taxon_id: taxonId,
+    kind: "image",
+    url: candidate.fullUrl,
+    thumb_url: candidate.thumbUrl ?? null,
+    title: candidate.title,
+    author: candidate.author,
+    license: candidate.license,
+    source: "Wikimedia Commons",
+    approved: false
+  });
+  if (error) throw error;
+  return { added: true };
+}
+
+export async function addCommonsImageFlexible(taxonId: number, canonicalName: string) {
+  // Sorgu stratejisi: tam ad → tür adı → cins + tür (boşluklu/italiksiz)
+  const parts = canonicalName.split(" ").filter(Boolean);
+  const species = parts.length >= 2 ? parts.slice(0, 2).join(" ") : canonicalName;
+  const genus = parts[0];
+
+  const candidates = [
+    canonicalName,        // tam (alt-tür dahil)
+    species,              // sadece tür
+    `${genus} ${parts[1] || ""}`.trim()
+  ];
+
+  const candidate = await searchCommonsBestImageMulti(candidates);
   if (!candidate) return { added: false, reason: "no_candidate" };
 
   const { data: exists } = await supabaseService

@@ -1,7 +1,7 @@
 // scripts/add_media_to_existing.ts
 // Mevcut türlere Wikimedia Commons'tan görsel ekler
 import { createClient } from "@supabase/supabase-js";
-import { addCommonsImage } from "@/lib/enrich";
+import { addCommonsImageFlexible } from "@/lib/enrich";
 import fs from "node:fs";
 
 const SB_SERVICE = createClient(
@@ -100,7 +100,7 @@ async function main() {
         checkpoint[taxon.id] = true;
         console.log(`⏭️  [${ok + skip + fail}/${todo.length}] ${taxon.canonical_name} (zaten var)`);
       } else {
-        const result = await addCommonsImage(taxon.id, taxon.canonical_name);
+        const result = await addCommonsImageFlexible(taxon.id, taxon.canonical_name);
         if (result.added) {
           ok++;
           console.log(`✅ [${ok + skip + fail}/${todo.length}] ${taxon.canonical_name} → medya eklendi`);
